@@ -1,0 +1,6 @@
+name: NextEconomyBungeeHook
+main: com.nextplugins.economy.bungeehook.NextEconomyBungeeHook
+author: NextPlugins
+version: 1.0.0
+depend:
+  - NextEconomy
