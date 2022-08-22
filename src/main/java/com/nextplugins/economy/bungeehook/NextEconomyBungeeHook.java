@@ -30,7 +30,7 @@ public final class NextEconomyBungeeHook extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        checkEconomyVersion();
+        if (!checkEconomyVersion()) return;
 
         metrics = new Metrics(this, PLUGIN_ID);
 
@@ -62,7 +62,7 @@ public final class NextEconomyBungeeHook extends JavaPlugin {
         messenger.unregisterIncomingPluginChannel(this);
     }
 
-    private void checkEconomyVersion() {
+    private boolean checkEconomyVersion() {
         final NextEconomy economy = NextEconomy.getInstance();
 
         final int version = Integer.parseInt(economy.getDescription().getVersion().replace(".", ""));
@@ -72,6 +72,8 @@ public final class NextEconomyBungeeHook extends JavaPlugin {
 
             pluginManager.disablePlugin(this);
         }
+
+        return version >= 214;
     }
 
 }
