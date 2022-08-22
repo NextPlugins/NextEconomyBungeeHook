@@ -4,14 +4,13 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.nextplugins.economy.api.NextEconomyAPI;
 import com.nextplugins.economy.api.event.operations.MoneyChangeEvent;
-import com.nextplugins.economy.api.event.operations.MoneyWithdrawEvent;
-import com.nextplugins.economy.api.event.transaction.TransactionCompletedEvent;
+import com.nextplugins.economy.api.event.transaction.TransactionRequestEvent;
 import com.nextplugins.economy.model.account.Account;
 import lombok.Data;
-import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 
@@ -20,29 +19,29 @@ import java.io.DataOutputStream;
 import java.util.UUID;
 
 @Data
-public final class MoneyListener implements Listener {
+public final class TransactionListener implements Listener {
 
     private static final NextEconomyAPI economy = NextEconomyAPI.getInstance();
 
     private final String targetServer;
     private final Plugin plugin;
 
-    @EventHandler
-    private void change(MoneyChangeEvent event) {
-        final Player player = event.getPlayer();
-
-        call(player, event.getCurrentAmount());
+    @EventHandler(priority = EventPriority.HIGHEST)
+    private void handle(MoneyChangeEvent event) {
+        call(event.getPlayer(), event.getCurrentAmount());
     }
 
-    @EventHandler
-    private void transaction(TransactionCompletedEvent event) {
-        final Account account = economy.findAccountByPlayer(event.getPlayer());
-        final Account targetAccount = economy.findAccountByPlayer(event.getTarget());
+    @EventHandler(priority = EventPriority.HIGHEST)
+    private void handle(TransactionRequestEvent event) {
+        if (event.isCancelled()) return;
 
-        if (targetAccount == null) return;
+        final Player sender = event.getPlayer();
+        final OfflinePlayer target = event.getTarget();
 
-        call(event.getPlayer(), account.getBalance());
-        call(event.getPlayer(), event.getTarget().getUniqueId(), targetAccount.getBalance());
+        final Account account = event.getAccount();
+
+        call(sender, account.getBalance());
+        call(sender, target.getUniqueId(), economy.findAccountByPlayer(target).getBalance());
     }
 
     private void call(Player player, double amount) {
